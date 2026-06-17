@@ -10,6 +10,15 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         {4,5,6},
         {7,8,0} //0 representa el espacio vacío auxiliar en el tablero
     };
+
+    //datos del modo inteligente
+    private java.util.List<int[][]> solucionInteligente;
+    private int pasoActual = 0;
+    
+    //control del árbol
+    private int profundidadMaxima = 30;
+    private int limiteNodos = 100000;
+    
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GraphicPuzzle.class.getName());
 
     /**
@@ -28,6 +37,10 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         piezas[2][2] = jButton9;
 
         buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
+
+        buttonResolverInteligente.addActionListener(e -> resolverInteligente());
+        buttonSiguientePaso.addActionListener(e -> mostrarSiguientePaso());
+        //buttonAutomatico.addActionListener(e -> ejecutarAutomatico()); puede usarse despues
         
         actualizarTablero();
 
@@ -104,6 +117,110 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         }
         
         return true;
+    }
+
+    private void resolverInteligente() {
+
+        int[][] meta = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 0}
+        };
+    
+        String profundidadTexto = JOptionPane.showInputDialog(this, "Ingresa la profundidad máxima del árbol:", String.valueOf(profundidadMaxima));
+    
+        if (profundidadTexto == null) {
+            return;
+        }
+    
+        String limiteTexto = JOptionPane.showInputDialog(this, "Ingresa el límite máximo de nodos:", String.valueOf(limiteNodos)
+        );
+    
+        if (limiteTexto == null) {
+            return;
+        }
+    
+        try {
+            profundidadMaxima = Integer.parseInt(profundidadTexto);
+            limiteNodos = Integer.parseInt(limiteTexto);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Debes ingresar números válidos.");
+            return;
+        }
+    
+        if (profundidadMaxima <= 0 || limiteNodos <= 0) {
+            JOptionPane.showMessageDialog(this, "La profundidad y el límite de nodos deben ser mayores a 0.");
+            return;
+        }
+    
+        SolverAEstrella solver = new SolverAEstrella();
+    
+        ResultadoBusqueda resultado = solver.resolver(tablero, meta, profundidadMaxima, limiteNodos);
+    
+        if (!resultado.isEncontrada()) {
+            JOptionPane.showMessageDialog(this, resultado.getMensaje() + "\nNodos generados: " + resultado.getNodosGenerados() + "\nNodos explorados: " + resultado.getNodosExplorados());
+            return;
+        }
+    
+        solucionInteligente = resultado.getCamino();
+        pasoActual = 0;
+    
+        JOptionPane.showMessageDialog(this, resultado.getMensaje() + "\nMovimientos: " + (solucionInteligente.size() - 1) + "\nNodos generados: " + resultado.getNodosGenerados() + "\nNodos explorados: " + resultado.getNodosExplorados());
+    }
+
+    private void mostrarSiguientePaso() {
+    
+        if(solucionInteligente == null || solucionInteligente.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Primero debes ejecutar Resolver Inteligente.");
+            return;
+        }
+    
+        if(pasoActual < solucionInteligente.size()){
+            tablero = copiarTableroLocal(solucionInteligente.get(pasoActual));
+            actualizarTablero();
+            pasoActual++;
+        }else{
+            JOptionPane.showMessageDialog(this, "Ya se mostró toda la solución.");
+        }
+    }
+    
+    /* por si se usa despues 
+    
+    private void ejecutarAutomatico(){
+    
+        if (solucionInteligente == null || solucionInteligente.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Primero debes ejecutar Resolver Inteligente.");
+            return;
+        }
+    
+        pasoActual = 0;
+    
+        javax.swing.Timer timer = new javax.swing.Timer(700, e ->{
+    
+            if (pasoActual < solucionInteligente.size()) {
+                tablero = copiarTableroLocal(solucionInteligente.get(pasoActual));
+                actualizarTablero();
+                pasoActual++;
+            } else {
+                ((javax.swing.Timer) e.getSource()).stop();
+                JOptionPane.showMessageDialog(this, "Solución terminada.");
+            }
+        });
+    
+        timer.start();
+    }
+    */
+    private int[][] copiarTableroLocal(int[][] original) {
+    
+        int[][] copia = new int[3][3];
+    
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                copia[i][j] = original[i][j];
+            }
+        }
+    
+        return copia;
     }
 
     /**
