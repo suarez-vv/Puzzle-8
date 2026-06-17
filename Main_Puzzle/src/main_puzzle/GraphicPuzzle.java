@@ -26,6 +26,8 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         piezas[2][0] = jButton7;
         piezas[2][1] = jButton8;
         piezas[2][2] = jButton9;
+
+        buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
         
         actualizarTablero();
 
