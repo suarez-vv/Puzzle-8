@@ -16,6 +16,26 @@ public class NodoPuzzle implements Comparable<NodoPuzzle> {
         this.f = g + h;
     }
 
+    public int[][] getTablero() {
+        return tablero;
+    }
+
+    public NodoPuzzle getPadre() {
+        return padre;
+    }
+
+    public int getG() {
+        return g;
+    }
+
+    public int getH() {
+        return h;
+    }
+
+    public int getF() {
+        return f;
+    }
+
     @Override
     public int compareTo(NodoPuzzle otro){
         return Integer.compare(this.f, otro.f);
