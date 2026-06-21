@@ -424,6 +424,9 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         buttonSiguientePaso.setText("Siguiente Paso");
         buttonSiguientePaso.addActionListener(this::buttonSiguientePasoActionPerformed);
 
+        buttonVerPuntuaciones.setText("Mostrar Puntuaciones");
+        buttonVerPuntuaciones.addActionListener(this::buttonVerPuntuacionesActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -478,28 +481,26 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(84, 84, 84)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(165, 165, 165))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3))
-                        .addGap(46, 46, 46)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton4)
-                            .addComponent(jButton5)
-                            .addComponent(jButton6))
-                        .addGap(41, 41, 41)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton7)
-                            .addComponent(jButton8)
-                            .addComponent(jButton9))
-                        .addGap(18, 18, 18)))
+                .addGap(42, 42, 42)
+                .addComponent(buttonVerPuntuaciones)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(37, 37, 37)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2)
+                    .addComponent(jButton3))
+                .addGap(46, 46, 46)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton4)
+                    .addComponent(jButton5)
+                    .addComponent(jButton6))
+                .addGap(41, 41, 41)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton7)
+                    .addComponent(jButton8)
+                    .addComponent(jButton9))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton10)
                     .addComponent(buttonSugerirJugada))
@@ -558,6 +559,14 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     private void buttonSiguientePasoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSiguientePasoActionPerformed
         mostrarSiguientePaso();
     }//GEN-LAST:event_buttonSiguientePasoActionPerformed
+
+    private void buttonSugerirJugadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSugerirJugadaActionPerformed
+        sugerirJugada();
+    }//GEN-LAST:event_buttonSugerirJugadaActionPerformed
+
+    private void buttonVerPuntuacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonVerPuntuacionesActionPerformed
+        
+    }//GEN-LAST:event_buttonVerPuntuacionesActionPerformed
 
     /**
      * @param args the command line arguments
