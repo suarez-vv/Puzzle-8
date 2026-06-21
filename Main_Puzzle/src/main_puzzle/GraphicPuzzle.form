@@ -65,6 +65,10 @@
                       <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
                       <Component id="jButton10" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="buttonVerPuntuaciones" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace pref="26" max="32767" attributes="0"/>
           </Group>
@@ -98,6 +102,8 @@
                   <Component id="jButton10" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonSugerirJugada" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="buttonVerPuntuaciones" min="-2" max="-2" attributes="0"/>
               <EmptySpace pref="15" max="32767" attributes="0"/>
           </Group>
       </Group>
@@ -194,6 +200,11 @@
     <Component class="javax.swing.JButton" name="buttonSugerirJugada">
       <Properties>
         <Property name="text" type="java.lang.String" value="Sugerir Jugada"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonVerPuntuaciones">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Ver Puntuaciones"/>
       </Properties>
     </Component>
   </SubComponents>

@@ -1,6 +1,8 @@
 package main_puzzle;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class GraphicPuzzle extends javax.swing.JFrame {
@@ -18,6 +20,8 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     //control del árbol
     private int profundidadMaxima = 30;
     private int limiteNodos = 100000;
+    private int movimientosJugador = 0;
+    private ManejadorPuntuaciones manejadorPuntuaciones = new ManejadorPuntuaciones();
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GraphicPuzzle.class.getName());
 
@@ -38,8 +42,7 @@ public class GraphicPuzzle extends javax.swing.JFrame {
 
         buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
 
-        buttonResolverInteligente.addActionListener(e -> resolverInteligente());
-        buttonSiguientePaso.addActionListener(e -> mostrarSiguientePaso());
+        buttonVerPuntuaciones.addActionListener(e -> mostrarPuntuaciones());
         //buttonAutomatico.addActionListener(e -> ejecutarAutomatico()); puede usarse despues
         
         actualizarTablero();
@@ -67,12 +70,18 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         for(int k=0; k<100; k++){
             int i = r.nextInt(3);
             int j = r.nextInt(3);
-            moverFicha(i, j);
+            moverFicha(i, j, false);
         }
+
+        movimientosJugador = 0;
     }
     
     //Mover ficha
     private void moverFicha(int i, int j){
+        moverFicha(i, j, true);
+    }
+
+    private void moverFicha(int i, int j, boolean contarMovimiento){
         int filaVacia = -1;
         int colVacia = -1;
         
@@ -93,9 +102,14 @@ public class GraphicPuzzle extends javax.swing.JFrame {
             tablero[i][j] = 0;
             
             actualizarTablero();
+
+            if (contarMovimiento) {
+                movimientosJugador++;
+            }
             
-            if(resuelto()){
+            if(contarMovimiento && resuelto()){
                 JOptionPane.showMessageDialog(this, "Has ganado!!!");
+                guardarPuntuacionJugador();
             }
         }
     }
@@ -117,6 +131,124 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         }
         
         return true;
+    }
+
+    private void sugerirJugada() {
+
+        int[][] meta = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 0}
+        };
+
+        String profundidadTexto = JOptionPane.showInputDialog(this, "Ingresa la profundidad para buscar la sugerencia:", String.valueOf(profundidadMaxima));
+
+        if (profundidadTexto == null) {
+            return;
+        }
+
+        try {
+            profundidadMaxima = Integer.parseInt(profundidadTexto);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Debes escribir un numero valido.");
+            return;
+        }
+
+        if (profundidadMaxima <= 0) {
+            JOptionPane.showMessageDialog(this, "La profundidad debe ser mayor a 0.");
+            return;
+        }
+
+        SolverAEstrella solver = new SolverAEstrella();
+        ResultadoBusqueda resultado = solver.sugerirJugada(tablero, meta, profundidadMaxima, limiteNodos);
+
+        if (resultado.getCamino() == null || resultado.getCamino().size() < 2) {
+            JOptionPane.showMessageDialog(this, "No se encontro una sugerencia para este tablero.");
+            return;
+        }
+
+        int[][] siguienteTablero = resultado.getCamino().get(1);
+        int fichaSugerida = obtenerFichaMovida(tablero, siguienteTablero);
+
+        JOptionPane.showMessageDialog(this,
+                "Sugerencia: mueve la ficha " + fichaSugerida
+                + "\n" + resultado.getMensaje()
+                + "\nNodos generados: " + resultado.getNodosGenerados()
+                + "\nNodos explorados: " + resultado.getNodosExplorados());
+    }
+
+    private int obtenerFichaMovida(int[][] actual, int[][] siguiente) {
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (actual[i][j] == 0 && siguiente[i][j] != 0) {
+                    return siguiente[i][j];
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private void guardarPuntuacionJugador() {
+
+        String alias = JOptionPane.showInputDialog(this, "Escribe tu alias para guardar la puntuacion:");
+
+        if (alias == null) {
+            return;
+        }
+
+        alias = alias.trim();
+
+        if (alias.isEmpty()) {
+            alias = "Jugador";
+        }
+
+        int puntos = calcularPuntos();
+
+        try {
+            manejadorPuntuaciones.guardarPuntuacion(alias, puntos);
+            JOptionPane.showMessageDialog(this, "Puntuacion guardada: " + puntos + " puntos.");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo guardar la puntuacion.");
+        }
+    }
+
+    private int calcularPuntos() {
+        int puntos = 1000 - (movimientosJugador * 10);
+
+        if (puntos < 100) {
+            puntos = 100;
+        }
+
+        return puntos;
+    }
+
+    private void mostrarPuntuaciones() {
+
+        try {
+            List<Puntuacion> puntuaciones = manejadorPuntuaciones.leerPuntuacionesOrdenadas();
+
+            if (puntuaciones.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Todavia no hay puntuaciones guardadas.");
+                return;
+            }
+
+            StringBuilder reporte = new StringBuilder("Puntuaciones:\n\n");
+
+            for (Puntuacion puntuacion : puntuaciones) {
+                reporte.append(puntuacion.getAlias())
+                        .append(" - ")
+                        .append(puntuacion.getPuntos())
+                        .append(" puntos - ")
+                        .append(puntuacion.getFecha())
+                        .append("\n");
+            }
+
+            JOptionPane.showMessageDialog(this, reporte.toString());
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudieron leer las puntuaciones.");
+        }
     }
 
     private void resolverInteligente() {
@@ -245,6 +377,7 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         jButton9 = new javax.swing.JButton();
         jButton10 = new javax.swing.JButton();
         buttonSugerirJugada = new javax.swing.JButton();
+        buttonVerPuntuaciones = new javax.swing.JButton();
 
         jButton12.setText("jButton12");
 
@@ -283,6 +416,7 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         jButton10.addActionListener(this::jButton10ActionPerformed);
 
         buttonSugerirJugada.setText("Sugerir Jugada");
+        buttonVerPuntuaciones.setText("Ver Puntuaciones");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -315,7 +449,10 @@ public class GraphicPuzzle extends javax.swing.JFrame {
                         .addContainerGap()
                         .addComponent(buttonSugerirJugada)
                         .addGap(45, 45, 45)
-                        .addComponent(jButton10)))
+                        .addComponent(jButton10))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(buttonVerPuntuaciones)))
                 .addContainerGap(26, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -342,6 +479,8 @@ public class GraphicPuzzle extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton10)
                     .addComponent(buttonSugerirJugada))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(buttonVerPuntuaciones)
                 .addContainerGap(15, Short.MAX_VALUE))
         );
 
@@ -415,6 +554,7 @@ public class GraphicPuzzle extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonSugerirJugada;
+    private javax.swing.JButton buttonVerPuntuaciones;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton12;
