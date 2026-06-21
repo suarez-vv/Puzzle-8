@@ -36,10 +36,7 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         piezas[2][1] = jButton8;
         piezas[2][2] = jButton9;
 
-        buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
-
-        buttonResolverInteligente.addActionListener(e -> resolverInteligente());
-        buttonSiguientePaso.addActionListener(e -> mostrarSiguientePaso());
+        //buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
         //buttonAutomatico.addActionListener(e -> ejecutarAutomatico()); puede usarse despues
         
         actualizarTablero();
@@ -245,6 +242,8 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         jButton9 = new javax.swing.JButton();
         jButton10 = new javax.swing.JButton();
         buttonSugerirJugada = new javax.swing.JButton();
+        buttonResolverInteligente = new javax.swing.JButton();
+        buttonSiguientePaso = new javax.swing.JButton();
 
         jButton12.setText("jButton12");
 
@@ -284,6 +283,12 @@ public class GraphicPuzzle extends javax.swing.JFrame {
 
         buttonSugerirJugada.setText("Sugerir Jugada");
 
+        buttonResolverInteligente.setText("Modo Inteligente");
+        buttonResolverInteligente.addActionListener(this::buttonResolverInteligenteActionPerformed);
+
+        buttonSiguientePaso.setText("Siguiente Paso");
+        buttonSiguientePaso.addActionListener(this::buttonSiguientePasoActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -291,57 +296,68 @@ public class GraphicPuzzle extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
+                        .addContainerGap()
+                        .addComponent(buttonResolverInteligente))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(144, 144, 144)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonSiguientePaso)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
+                        .addComponent(buttonSugerirJugada)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton10)
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jButton7)
                             .addComponent(jButton4)
-                            .addComponent(jButton1)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jButton1))
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton3))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton6))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton9))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(buttonSugerirJugada)
-                        .addGap(45, 45, 45)
-                        .addComponent(jButton10)))
-                .addContainerGap(26, Short.MAX_VALUE))
+                            .addComponent(jButton2)
+                            .addComponent(jButton5)
+                            .addComponent(jButton8))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton3)
+                            .addComponent(jButton6)
+                            .addComponent(jButton9))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(36, 36, 36)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(34, 34, 34)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton4)
-                    .addComponent(jButton5)
-                    .addComponent(jButton6))
-                .addGap(41, 41, 41)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton7)
-                    .addComponent(jButton8)
-                    .addComponent(jButton9))
-                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(84, 84, 84)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(165, 165, 165))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton1)
+                            .addComponent(jButton2)
+                            .addComponent(jButton3))
+                        .addGap(46, 46, 46)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton4)
+                            .addComponent(jButton5)
+                            .addComponent(jButton6))
+                        .addGap(41, 41, 41)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton7)
+                            .addComponent(jButton8)
+                            .addComponent(jButton9))
+                        .addGap(18, 18, 18)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton10)
-                    .addComponent(buttonSugerirJugada))
+                    .addComponent(buttonSugerirJugada)
+                    .addComponent(buttonResolverInteligente)
+                    .addComponent(buttonSiguientePaso))
                 .addContainerGap(15, Short.MAX_VALUE))
         );
 
@@ -388,6 +404,14 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         mezclar();
     }//GEN-LAST:event_jButton10ActionPerformed
 
+    private void buttonResolverInteligenteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResolverInteligenteActionPerformed
+        resolverInteligente();
+    }//GEN-LAST:event_buttonResolverInteligenteActionPerformed
+
+    private void buttonSiguientePasoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSiguientePasoActionPerformed
+        mostrarSiguientePaso();
+    }//GEN-LAST:event_buttonSiguientePasoActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -414,6 +438,8 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonResolverInteligente;
+    private javax.swing.JButton buttonSiguientePaso;
     private javax.swing.JButton buttonSugerirJugada;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
