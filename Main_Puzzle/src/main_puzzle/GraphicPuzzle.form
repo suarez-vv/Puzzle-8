@@ -72,6 +72,10 @@
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="buttonVerPuntuaciones" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
           </Group>
           <Group type="102" alignment="0" attributes="0">
@@ -113,7 +117,9 @@
                   <Component id="buttonResolverInteligente" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonSiguientePaso" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="62" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="buttonVerPuntuaciones" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="15" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -214,21 +220,10 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSugerirJugadaActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="buttonResolverInteligente">
+    <Component class="javax.swing.JButton" name="buttonVerPuntuaciones">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Modo Inteligente"/>
+        <Property name="text" type="java.lang.String" value="Ver Puntuaciones"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonResolverInteligenteActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="buttonSiguientePaso">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Siguiente Paso"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSiguientePasoActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="buttonVerPuntuaciones">
       <Properties>
