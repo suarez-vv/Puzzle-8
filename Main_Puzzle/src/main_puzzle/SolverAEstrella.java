@@ -274,4 +274,96 @@ public class SolverAEstrella {
 
         return inversiones;
     }
+    
+    public ResultadoBusqueda sugerirJugada(int[][] inicio, int[][] meta, int profundidadMaxima, int limiteNodos) {
+
+        PriorityQueue<NodoPuzzle> abiertos = new PriorityQueue<>();
+        HashSet<String> cerrados = new HashSet<>();
+
+        int nodosGenerados = 0;
+        int nodosExplorados = 0;
+
+        if (!esSolucionable(inicio, meta)) {
+            return new ResultadoBusqueda(
+                    null,
+                    nodosGenerados,
+                    nodosExplorados,
+                    false,
+                    "Este tablero no puede llegar a la meta."
+            );
+        }
+
+        int hInicial = calcularManhattan(inicio, meta);
+        NodoPuzzle nodoInicial = new NodoPuzzle(copiarTablero(inicio), null, 0, hInicial);
+        NodoPuzzle mejorNodo = nodoInicial;
+
+        abiertos.add(nodoInicial);
+        nodosGenerados++;
+
+        while (!abiertos.isEmpty()) {
+
+            NodoPuzzle actual = abiertos.poll();
+            String claveActual = convertirAString(actual.getTablero());
+
+            if (cerrados.contains(claveActual)) {
+                continue;
+            }
+
+            cerrados.add(claveActual);
+            nodosExplorados++;
+
+            if (actual.getH() < mejorNodo.getH()
+                    || (actual.getH() == mejorNodo.getH() && actual.getF() < mejorNodo.getF())) {
+                mejorNodo = actual;
+            }
+
+            if (sonIguales(actual.getTablero(), meta)) {
+                return new ResultadoBusqueda(
+                        reconstruirCamino(actual),
+                        nodosGenerados,
+                        nodosExplorados,
+                        true,
+                        "Se encontro una ruta completa."
+                );
+            }
+
+            if (actual.getG() >= profundidadMaxima) {
+                continue;
+            }
+
+            List<int[][]> sucesores = generarSucesores(actual.getTablero());
+
+            for (int[][] sucesor : sucesores) {
+
+                String claveSucesor = convertirAString(sucesor);
+
+                if (!cerrados.contains(claveSucesor)) {
+
+                    if (nodosGenerados >= limiteNodos) {
+                        return new ResultadoBusqueda(
+                                reconstruirCamino(mejorNodo),
+                                nodosGenerados,
+                                nodosExplorados,
+                                false,
+                                "Se alcanzo el limite de nodos, se muestra la mejor sugerencia encontrada."
+                        );
+                    }
+
+                    int g = actual.getG() + 1;
+                    int h = calcularManhattan(sucesor, meta);
+
+                    abiertos.add(new NodoPuzzle(sucesor, actual, g, h));
+                    nodosGenerados++;
+                }
+            }
+        }
+
+        return new ResultadoBusqueda(
+                reconstruirCamino(mejorNodo),
+                nodosGenerados,
+                nodosExplorados,
+                false,
+                "No se encontro la solucion completa, se muestra la mejor sugerencia encontrada."
+        );
+    }
 }

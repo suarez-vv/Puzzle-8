@@ -1,6 +1,8 @@
 package main_puzzle;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class GraphicPuzzle extends javax.swing.JFrame {
@@ -10,6 +12,10 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         {4,5,6},
         {7,8,0} //0 representa el espacio vacío auxiliar en el tablero
     };
+    
+    //Nivel y mezcla
+    private int nivel = 1;
+    private boolean mezclando = false;
 
     //datos del modo inteligente
     private java.util.List<int[][]> solucionInteligente;
@@ -18,6 +24,9 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     //control del árbol
     private int profundidadMaxima = 30;
     private int limiteNodos = 100000;
+    private int movimientosJugador = 0;
+    private ManejadorPuntuaciones manejadorPuntuaciones = new ManejadorPuntuaciones();
+    private int puntosTotales = 0;
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GraphicPuzzle.class.getName());
 
@@ -35,13 +44,12 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         piezas[2][0] = jButton7;
         piezas[2][1] = jButton8;
         piezas[2][2] = jButton9;
-
-        //buttonSugerirJugada.addActionListener(e -> sugerirJugada()); // botón "sugerir jugada"
-        //buttonAutomatico.addActionListener(e -> ejecutarAutomatico()); puede usarse despues
         
+        mezclar();
         actualizarTablero();
-
         
+        fieldNivel.setText(String.valueOf(nivel));
+        fieldPuntosAcumulados.setText("0");
     }
     
     //Actualizar el tablero cuando se mueve una pieza
@@ -59,13 +67,28 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     
     //Poner las fichas en desorden
     private void mezclar(){
-        Random r = new java.util.Random();
+        Random r = new Random();
+        int movimientos;
         
-        for(int k=0; k<100; k++){
+        mezclando = true;
+        switch(nivel){
+            case 1: movimientos = 50;
+                break;
+            case 2: movimientos = 100;
+                break;
+            case 3: movimientos = 150;
+                break;
+            default: movimientos = 150;
+                break;
+        }
+        
+        for(int k=0; k<movimientos; k++){
             int i = r.nextInt(3);
             int j = r.nextInt(3);
             moverFicha(i, j);
         }
+        mezclando = false;
+        movimientosJugador = 0;
     }
     
     //Mover ficha
@@ -90,9 +113,33 @@ public class GraphicPuzzle extends javax.swing.JFrame {
             tablero[i][j] = 0;
             
             actualizarTablero();
+            movimientosJugador++;
             
-            if(resuelto()){
-                JOptionPane.showMessageDialog(this, "Has ganado!!!");
+            if(!mezclando && resuelto()){
+                int puntosNivel = calcularPuntos();
+                puntosTotales += puntosNivel;
+                fieldPuntosAcumulados.setText(String.valueOf(puntosTotales));
+                
+                if(nivel < 3){
+                    JOptionPane.showMessageDialog(this, "Felicidades!! Terminaste el nivel " + nivel +
+                            "\nPuntuación del nivel: " + puntosNivel + "\nPuntos acumulados: " + puntosTotales + 
+                            "\nPasas al nivel " + (nivel + 1));
+                                    
+                    nivel++;
+                    mezclar();
+                    fieldNivel.setText(String.valueOf(nivel));
+
+                }else{
+                    JOptionPane.showMessageDialog(this, "Felicidades, Juego completado!!!" + 
+                                                    "\nPuntuación del nivel 3: " + puntosNivel + "\nPuntos totales: " + puntosTotales);
+                    guardarPuntuacionJugador();
+                    nivel = 1;
+                    mezclar();
+                    actualizarTablero();
+                    puntosTotales = 0;
+                    fieldNivel.setText(String.valueOf(nivel));
+                    fieldPuntosAcumulados.setText("0");
+                }
             }
         }
     }
@@ -114,6 +161,122 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         }
         
         return true;
+    }
+    
+    private void sugerirJugada() {
+
+        int[][] meta = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 0}
+        };
+
+        String profundidadTexto = JOptionPane.showInputDialog(this, "Ingresa la profundidad para buscar la sugerencia:", String.valueOf(profundidadMaxima));
+
+        if (profundidadTexto == null) {
+            return;
+        }
+
+        try {
+            profundidadMaxima = Integer.parseInt(profundidadTexto);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Debes escribir un numero valido.");
+            return;
+        }
+
+        if (profundidadMaxima <= 0) {
+            JOptionPane.showMessageDialog(this, "La profundidad debe ser mayor a 0.");
+            return;
+        }
+
+        SolverAEstrella solver = new SolverAEstrella();
+        ResultadoBusqueda resultado = solver.sugerirJugada(tablero, meta, profundidadMaxima, limiteNodos);
+
+        if (resultado.getCamino() == null || resultado.getCamino().size() < 2) {
+            JOptionPane.showMessageDialog(this, "No se encontro una sugerencia para este tablero.");
+            return;
+        }
+
+        int[][] siguienteTablero = resultado.getCamino().get(1);
+        int fichaSugerida = obtenerFichaMovida(tablero, siguienteTablero);
+
+        JOptionPane.showMessageDialog(this,
+                "Sugerencia: mueve la ficha " + fichaSugerida
+                + "\n" + resultado.getMensaje()
+                + "\nNodos generados: " + resultado.getNodosGenerados()
+                + "\nNodos explorados: " + resultado.getNodosExplorados());
+    }
+
+    private int obtenerFichaMovida(int[][] actual, int[][] siguiente) {
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (actual[i][j] == 0 && siguiente[i][j] != 0) {
+                    return siguiente[i][j];
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private void guardarPuntuacionJugador() {
+
+        String alias = JOptionPane.showInputDialog(this, "Escribe tu alias para guardar la puntuacion:");
+
+        if (alias == null) {
+            return;
+        }
+
+        alias = alias.trim();
+
+        if (alias.isEmpty()) {
+            alias = "Jugador";
+        }
+
+        try {
+            manejadorPuntuaciones.guardarPuntuacion(alias, puntosTotales);
+            JOptionPane.showMessageDialog(this, "Puntuacion guardada: " + puntosTotales + " puntos.");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo guardar la puntuacion.");
+        }
+    }
+
+    private int calcularPuntos() {
+        int puntos = 1000 - (movimientosJugador * 10);
+
+        if (puntos < 100) {
+            puntos = 100;
+        }
+
+        return puntos;
+    }
+
+    private void mostrarPuntuaciones() {
+
+        try {
+            List<Puntuacion> puntuaciones = manejadorPuntuaciones.leerPuntuacionesOrdenadas();
+
+            if (puntuaciones.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Todavia no hay puntuaciones guardadas.");
+                return;
+            }
+
+            StringBuilder reporte = new StringBuilder("Puntuaciones:\n\n");
+
+            for (Puntuacion puntuacion : puntuaciones) {
+                reporte.append(puntuacion.getAlias())
+                        .append(" - ")
+                        .append(puntuacion.getPuntos())
+                        .append(" puntos - ")
+                        .append(puntuacion.getFecha())
+                        .append("\n");
+            }
+
+            JOptionPane.showMessageDialog(this, reporte.toString());
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudieron leer las puntuaciones.");
+        }
     }
 
     private void resolverInteligente() {
@@ -230,6 +393,9 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     private void initComponents() {
 
         jButton12 = new javax.swing.JButton();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        jMenu2 = new javax.swing.JMenu();
         jPanel1 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
@@ -245,8 +411,23 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         buttonResolverInteligente = new javax.swing.JButton();
         buttonSiguientePaso = new javax.swing.JButton();
         buttonVerPuntuaciones = new javax.swing.JButton();
+        labelNivel = new javax.swing.JLabel();
+        labelPuntosAcumulados = new javax.swing.JLabel();
+        fieldNivel = new javax.swing.JTextField();
+        fieldPuntosAcumulados = new javax.swing.JTextField();
+        jMenuBar2 = new javax.swing.JMenuBar();
+        itemSalir = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        itemAcercaDe = new javax.swing.JMenuItem();
 
         jButton12.setText("jButton12");
+
+        jMenu1.setText("File");
+        jMenuBar1.add(jMenu1);
+
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -294,6 +475,32 @@ public class GraphicPuzzle extends javax.swing.JFrame {
         buttonVerPuntuaciones.setText("Mostrar Puntuaciones");
         buttonVerPuntuaciones.addActionListener(this::buttonVerPuntuacionesActionPerformed);
 
+        labelNivel.setText("Nivel:");
+
+        labelPuntosAcumulados.setText("Puntos Acumulados:");
+
+        fieldNivel.setEditable(false);
+
+        fieldPuntosAcumulados.setEditable(false);
+
+        itemSalir.setText("Menú");
+
+        jMenuItem1.setText("Salir del Programa");
+        jMenuItem1.addActionListener(this::jMenuItem1ActionPerformed);
+        itemSalir.add(jMenuItem1);
+
+        jMenuBar2.add(itemSalir);
+
+        jMenu4.setText("Ayuda");
+
+        itemAcercaDe.setText("Acerca de...");
+        itemAcercaDe.addActionListener(this::itemAcercaDeActionPerformed);
+        jMenu4.add(itemAcercaDe);
+
+        jMenuBar2.add(jMenu4);
+
+        setJMenuBar(jMenuBar2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -306,17 +513,30 @@ public class GraphicPuzzle extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(144, 144, 144)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonSiguientePaso)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 108, Short.MAX_VALUE)
+                .addComponent(buttonSugerirJugada)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton10)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(113, 113, 113)
+                .addComponent(labelPuntosAcumulados)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fieldPuntosAcumulados, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(127, 127, 127)
+                .addComponent(labelNivel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fieldNivel, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonSiguientePaso)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
-                        .addComponent(buttonSugerirJugada)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton10)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(buttonVerPuntuaciones)
+                        .addGap(256, 256, 256))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jButton7)
                             .addComponent(jButton4)
@@ -331,20 +551,20 @@ public class GraphicPuzzle extends javax.swing.JFrame {
                             .addComponent(jButton3)
                             .addComponent(jButton6)
                             .addComponent(jButton9))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(283, 283, 283)
-                .addComponent(buttonVerPuntuaciones)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(240, 240, 240))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addComponent(buttonVerPuntuaciones)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(14, 14, 14)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelNivel)
+                    .addComponent(labelPuntosAcumulados)
+                    .addComponent(fieldNivel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldPuntosAcumulados, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(34, 34, 34)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(37, 37, 37)
+                .addGap(8, 8, 8)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2)
@@ -359,13 +579,15 @@ public class GraphicPuzzle extends javax.swing.JFrame {
                     .addComponent(jButton7)
                     .addComponent(jButton8)
                     .addComponent(jButton9))
-                .addGap(18, 18, 18)
+                .addGap(47, 47, 47)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton10)
                     .addComponent(buttonSugerirJugada)
                     .addComponent(buttonResolverInteligente)
                     .addComponent(buttonSiguientePaso))
-                .addContainerGap(62, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(buttonVerPuntuaciones)
+                .addContainerGap(33, Short.MAX_VALUE))
         );
 
         pack();
@@ -424,8 +646,18 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonSugerirJugadaActionPerformed
 
     private void buttonVerPuntuacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonVerPuntuacionesActionPerformed
-        
+        mostrarPuntuaciones();
     }//GEN-LAST:event_buttonVerPuntuacionesActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void itemAcercaDeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemAcercaDeActionPerformed
+        JOptionPane.showMessageDialog(this, "ISC - 4° 'B' \n\nRealizado por:"
+                                        + "\nVenegas Cons, A." + "\nZermeño, P.\nSuárez, V.V. ",
+                                        "Acerca de...", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_itemAcercaDeActionPerformed
 
     /**
      * @param args the command line arguments
@@ -457,6 +689,10 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     private javax.swing.JButton buttonSiguientePaso;
     private javax.swing.JButton buttonSugerirJugada;
     private javax.swing.JButton buttonVerPuntuaciones;
+    private javax.swing.JTextField fieldNivel;
+    private javax.swing.JTextField fieldPuntosAcumulados;
+    private javax.swing.JMenuItem itemAcercaDe;
+    private javax.swing.JMenu itemSalir;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton12;
@@ -468,6 +704,14 @@ public class GraphicPuzzle extends javax.swing.JFrame {
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuBar jMenuBar2;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel labelNivel;
+    private javax.swing.JLabel labelPuntosAcumulados;
     // End of variables declaration//GEN-END:variables
 }
