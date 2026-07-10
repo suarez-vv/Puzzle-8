@@ -90,8 +90,12 @@ Puzzle-Proyecto_ProgramacionIII/
 ├── build.xml
 └── README.md
 ```
+## Documentación
 
----
+La documentación técnica del proyecto se encuentra disponible en:
+
+* `docs/Reporte-Puzzle-8.pdf`
+
 ## Integrantes
 
 - Venegas Aída
